@@ -21,9 +21,9 @@ type Invoice struct {
 type InvoiceItem struct {
         ID        uint    `gorm:"primary_key"`
         InvoiceID uint    `gorm:"not null"`
-        ProductID string    `gorm:"not null"`
-        ItemName  string    `gorm:"not null"`
-        Quantity  int     `gorm:"not null"`
+        ProductID string  `gorm:"not null"`
+        ItemName  string  `gorm:"not null"`
+        Quantity  float64 `gorm:"not null"`
         Price     float64 `gorm:"not null"`
         TaxRate   float64 // New field
         Tax       float64 // New field

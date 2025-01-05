@@ -20,62 +20,93 @@
         }
 
         function addProduct() {
-    const productId = document.getElementById('product_id').value;
-    const itemName = document.getElementById('item_name').value;
-    const quantityInput = document.getElementById('quantity');
-    const quantity = quantityInput.value;
-    const price = document.getElementById('price').value;
-    const taxRate = document.getElementById('tax').value;
+            const productId = document.getElementById('product_id').value;
+            const itemName = document.getElementById('item_name').value;
+            const quantityInput = document.getElementById('quantity');
+            const quantity = quantityInput.value;
+            const price = document.getElementById('price').value;
+            const taxRate = document.getElementById('tax').value;
 
-    if (productId === "" || itemName === "" || quantity === "" || price === "" || taxRate === "") {
-        alert("Please fill in all fields.");
-        return;
-    }
+            if (productId === "" || itemName === "" || quantity === "" || price === "" || taxRate === "") {
+                alert("Please fill in all fields.");
+                return;
+            }
 
-    const parsedQuantity = parseInt(quantity);
-    const parsedPrice = parseFloat(price);
-    const parsedTaxRate = parseFloat(taxRate);
+            const parsedQuantity = parseFloat(quantity);
+            const parsedPrice = parseFloat(price);
+            const parsedTaxRate = parseFloat(taxRate);
 
-    if (isNaN(parsedQuantity) || parsedQuantity < 0) {
-        alert('กรุณากรอกจำนวนสินค้าเป็นตัวเลขที่ถูกต้องและไม่เป็นลบ');
-        quantityInput.focus();
-        return;
-    }
+            if (isNaN(parsedQuantity) || parsedQuantity < 0) {
+                alert('กรุณากรอกจำนวนสินค้าเป็นตัวเลขที่ถูกต้องและไม่เป็นลบ');
+                quantityInput.focus();
+                return;
+            }
 
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-        alert('กรุณากรอกราคาให้ถูกต้องและไม่เป็นลบ');
-        return;
-    }
+            if (isNaN(parsedPrice) || parsedPrice < 0) {
+                alert('กรุณากรอกราคาให้ถูกต้องและไม่เป็นลบ');
+                return;
+            }
 
-    if (isNaN(parsedTaxRate) || parsedTaxRate < 0) {
-        alert('กรุณากรอกภาษีให้ถูกต้องและไม่เป็นลบ');
-        return;
-    }
+            if (isNaN(parsedTaxRate) || parsedTaxRate < 0) {
+                alert('กรุณากรอกภาษีให้ถูกต้องและไม่เป็นลบ');
+                return;
+            }
 
-    const tax = parsedPrice * parsedQuantity * (parsedTaxRate / 100);
-    const total = parsedPrice * parsedQuantity + tax;
+            const tax = parsedPrice * parsedQuantity * (parsedTaxRate / 100);
+            const total = parsedPrice * parsedQuantity + tax;
 
-    products.push({
-        productId: productId,
-        itemName: itemName,
-        quantity: quantity.toString(),
-        price: parsedPrice.toString(),
-        taxRate: parsedTaxRate.toString(),
-        tax: tax.toString(),
-        total: total.toString()
-    });
+            // Create hidden input fields for the new product
+            const form = document.querySelector('form');
+            
+            const addHiddenInput = (name, value) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name + '[]';
+                input.value = value;
+                form.appendChild(input);
+            };
 
-    updateProductList();
-    updateTotals();
+            addHiddenInput('product_id', productId);
+            addHiddenInput('item_name', itemName);
+            addHiddenInput('quantity', parsedQuantity.toString());
+            addHiddenInput('price', parsedPrice.toString());
+            addHiddenInput('tax_rate', parsedTaxRate.toString());
 
-    document.getElementById('product_id').value = '';
-    document.getElementById('item_name').value = '';
-    document.getElementById('quantity').value = '';
-    document.getElementById('price').value = '';
-    document.getElementById('tax').value = '';
-}
+            // Add to products array for display purposes
+            products.push({
+                productId: productId,
+                itemName: itemName,
+                quantity: parsedQuantity,
+                price: parsedPrice,
+                taxRate: parsedTaxRate,
+                tax: tax,
+                total: total
+            });
+
+            updateProductList();
+            updateTotals();
+
+            // Clear input fields
+            document.getElementById('product_id').value = '';
+            document.getElementById('item_name').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('price').value = '';
+            document.getElementById('tax').value = '';
+        }
 
         function removeProduct(index) {
+            // Remove hidden inputs
+            const form = document.querySelector('form');
+            const inputArrays = ['product_id[]', 'item_name[]', 'quantity[]', 'price[]', 'tax_rate[]'];
+            
+            inputArrays.forEach(inputName => {
+                const inputs = form.querySelectorAll(`input[name="${inputName}"]`);
+                if (inputs[index]) {
+                    inputs[index].remove();
+                }
+            });
+
+            // Remove from products array
             products.splice(index, 1);
             updateProductList();
             updateTotals();
@@ -88,21 +119,20 @@
             products.forEach((product, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-    <td class="py-2 px-4 border">${product.productId}</td>
-    <td class="py-2 px-4 border">${product.itemName}</td>
-    <td class="py-2 px-4 border">${product.quantity}</td>
-    <td class="py-2 px-4 border">${product.price.toFixed(2)}</td>
-    <td class="py-2 px-4 border">${product.taxRate.toFixed(2)}%</td>
-    <td class="py-2 px-4 border">${product.tax.toFixed(2)}</td>
-    <td class="py-2 px-4 border">${product.total.toFixed(2)}</td>
-    <td class="py-2 px-4 border">
-        <button type="button" onclick="removeProduct(${index})" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">ลบ</button>
-    </td>
-`;
+                    <td class="py-2 px-4 border">${product.productId}</td>
+                    <td class="py-2 px-4 border">${product.itemName}</td>
+                    <td class="py-2 px-4 border">${product.quantity}</td>
+                    <td class="py-2 px-4 border">${product.price.toFixed(2)}</td>
+                    <td class="py-2 px-4 border">${product.taxRate.toFixed(2)}%</td>
+                    <td class="py-2 px-4 border">${product.tax.toFixed(2)}</td>
+                    <td class="py-2 px-4 border">${product.total.toFixed(2)}</td>
+                    <td class="py-2 px-4 border">
+                        <button type="button" onclick="removeProduct(${index})" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">ลบ</button>
+                    </td>
+                `;
                 productList.appendChild(row);
             });
         }
-        
 
         function updateTotals() {
             let subtotal = 0;
@@ -123,26 +153,20 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-    updateInvoiceNumber();
+            updateInvoiceNumber();
 
-    // ส่วนที่แก้ไข: กำหนดวันที่และเวลาปัจจุบัน
-    const saleDateInput = document.getElementById('sale_date');
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours() % 12 || 12).padStart(2, '0'); // แปลงเป็น 12-hour format
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const amPm = now.getHours() < 12 ? 'AM' : 'PM'; // กำหนด AM/PM
-    const datetime = `${year}-${month}-${day}T${hours}:${minutes}`; // จัดรูปแบบวันที่และเวลา
-    saleDateInput.value = datetime;
-    
-});
-
-    function updateProductsData(){
-        const productsDataInput = document.getElementById('products_data');
-        productsDataInput.value = JSON.stringify(products);
-    }
+            // ส่วนที่แก้ไข: กำหนดวันที่และเวลาปัจจุบัน
+            const saleDateInput = document.getElementById('sale_date');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours() % 12 || 12).padStart(2, '0'); // แปลงเป็น 12-hour format
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const amPm = now.getHours() < 12 ? 'AM' : 'PM'; // กำหนด AM/PM
+            const datetime = `${year}-${month}-${day}T${hours}:${minutes}`; // จัดรูปแบบวันที่และเวลา
+            saleDateInput.value = datetime;
+        });
     </script>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -207,7 +231,6 @@
                             <div>
                                 <label for="product_id" class="block text-sm font-medium text-gray-700">Product ID</label>
                                 <input type="text" name="product_id" id="product_id" class="mt-1 p-2 border rounded w-full">
-                                <input type="hidden" name="products_data" id="products_data">
                             </div>
                             <div>
                                 <label for="item_name" class="block text-sm font-medium text-gray-700">Item Name</label>
@@ -228,6 +251,7 @@
                             <div class="col-span-2">
                                 <button type="button" onclick="addProduct()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded">Add Product</button>
                                 
+
                             </div>
                         </div>
 
@@ -262,7 +286,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" onclick="updateProductsData()" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+                    <button type="submit" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
                         สร้าง Invoice
                     </button>
                 </form>

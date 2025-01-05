@@ -5,81 +5,149 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice {{.Invoice.InvoiceNumber}}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="container mx-auto p-8">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h1 class="text-2xl font-bold mb-4">Invoice: {{.Invoice.InvoiceNumber}}</h1>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-8 bg-white shadow-lg my-8">
+        <!-- Header Actions -->
+        <div class="flex justify-end space-x-4 mb-8 no-print">
+            <button onclick="window.print()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-print"></i> พิมพ์
+            </button>
+            <button onclick="window.location.href='/download/invoice/{{.Invoice.ID}}'" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-download"></i> ดาวน์โหลด
+            </button>
+        </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Customer:</label>
-                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.CustomerName}}</span>
+        <!-- Invoice Header -->
+        <div class="flex justify-between items-start mb-8">
+            <!-- Company Logo & Info -->
+            <div class="flex items-start space-x-4">
+                <div class="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <span class="text-2xl font-bold">LOGO</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">บริษัท ของคุณ จำกัด</h2>
+                    <p class="text-gray-600">123 ถนนสุขุมวิท กรุงเทพฯ 10110</p>
+                    <p class="text-gray-600">โทร: 02-xxx-xxxx</p>
+                    <p class="text-gray-600">อีเมล: contact@company.com</p>
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Tax ID:</label>
-                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.TaxID}}</span>
+            <!-- Invoice Details -->
+            <div class="text-right">
+                <h1 class="text-2xl font-bold text-blue-600 mb-2">ใบกำกับภาษี/ใบเสร็จรับเงิน</h1>
+                <p class="text-gray-600">เลขที่: {{.Invoice.InvoiceNumber}}</p>
+                <p class="text-gray-600">วันที่: {{.Invoice.SaleDate.Format "02/01/2006"}}</p>
             </div>
+        </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Customer Address:</label>
-                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.CustomerAddress}}</span>
+        <!-- Customer Information -->
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div class="border rounded-lg p-4">
+                <h3 class="font-bold mb-2">ข้อมูลลูกค้า:</h3>
+                <p class="text-gray-700"><span class="font-semibold">ชื่อ:</span> {{.Invoice.CustomerName}}</p>
+                <p class="text-gray-700"><span class="font-semibold">เลขประจำตัวผู้เสียภาษี:</span> {{.Invoice.TaxID}}</p>
+                <p class="text-gray-700"><span class="font-semibold">ที่อยู่:</span> {{.Invoice.CustomerAddress}}</p>
             </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Sale Date:</label>
-                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.SaleDate.Format "2006-01-02"}}</span>
+            <div class="border rounded-lg p-4">
+                <h3 class="font-bold mb-2">ข้อมูลการขาย:</h3>
+                <p class="text-gray-700"><span class="font-semibold">พนักงานขาย:</span> {{.Invoice.SalesPerson}}</p>
+                <p class="text-gray-700"><span class="font-semibold">วันที่ขาย:</span> {{.Invoice.SaleDate.Format "02/01/2006"}}</p>
             </div>
+        </div>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Sales Person:</label>
-                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.SalesPerson}}</span>
-            </div>
-
-            <table class="mt-6 w-full">
+        <!-- Items Table -->
+        <div class="mb-8">
+            <table class="w-full">
                 <thead>
-                    <tr>
-                        <th class="py-2 px-4 border">Product ID</th>
-                        <th class="py-2 px-4 border">Item Name</th>
-                        <th class="py-2 px-4 border">Quantity</th>
-                        <th class="py-2 px-4 border">Price</th>
-                        <th class="py-2 px-4 border">Tax Rate</th>
-                        <th class="py-2 px-4 border">Tax</th>
-                        <th class="py-2 px-4 border">Total</th>
+                    <tr class="bg-gray-100">
+                        <th class="py-3 px-4 text-left">#</th>
+                        <th class="py-3 px-4 text-left">รหัสสินค้า</th>
+                        <th class="py-3 px-4 text-left">รายการ</th>
+                        <th class="py-3 px-4 text-right">จำนวน</th>
+                        <th class="py-3 px-4 text-right">ราคาต่อหน่วย</th>
+                        <th class="py-3 px-4 text-right">ภาษี (%)</th>
+                        <th class="py-3 px-4 text-right">ภาษี</th>
+                        <th class="py-3 px-4 text-right">รวม</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{range .Invoice.Items}}
-                    <tr>
-                        <td class="py-2 px-4 border">{{.ProductID}}</td>
-                        <td class="py-2 px-4 border">{{.ItemName}}</td>
-                        <td class="py-2 px-4 border">{{.Quantity}}</td>
-                        <td class="py-2 px-4 border">{{.Price}}</td>
-                        <td class="py-2 px-4 border">{{.TaxRate}}%</td>
-                        <td class="py-2 px-4 border">{{.Tax}}</td>
-                        <td class="py-2 px-4 border">{{printf "%.2f" (add (mul .Price .Quantity) .Tax)}}</td>
+                    {{range $index, $item := .Invoice.Items}}
+                    <tr class="border-b">
+                        <td class="py-3 px-4">{{add $index 1}}</td>
+                        <td class="py-3 px-4">{{$item.ProductID}}</td>
+                        <td class="py-3 px-4">{{$item.ItemName}}</td>
+                        <td class="py-3 px-4 text-right">{{printf "%.2f" $item.Quantity}}</td>
+                        <td class="py-3 px-4 text-right">{{printf "%.2f" $item.Price}}</td>
+                        <td class="py-3 px-4 text-right">{{printf "%.0f" $item.TaxRate}}</td>
+                        <td class="py-3 px-4 text-right">{{printf "%.2f" $item.Tax}}</td>
+                        <td class="py-3 px-4 text-right">{{printf "%.2f" $item.Total}}</td>
                     </tr>
                     {{end}}
                 </tbody>
             </table>
+        </div>
 
-            <div class="mt-6">
-                <div class="flex justify-end space-x-4">
-                    <div>Subtotal: <span id="subtotal">{{.Subtotal}}</span></div>
-                    <div>Tax: <span id="tax-total">{{.TotalTax}}</span></div>
-                    <div>Discount: <span id="discount">{{.Invoice.Discount}}</span></div>
-                    <div>Total: <span id="total">{{.Total}}</span></div>
+        <!-- Totals -->
+        <div class="flex justify-end mb-8">
+            <div class="w-64">
+                <div class="flex justify-between py-2">
+                    <span class="font-semibold">ยอดรวม:</span>
+                    <span>{{printf "%.2f" .Subtotal}}</span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="font-semibold">ภาษีมูลค่าเพิ่ม:</span>
+                    <span>{{printf "%.2f" .TotalTax}}</span>
+                </div>
+                <div class="flex justify-between py-2">
+                    <span class="font-semibold">ส่วนลด:</span>
+                    <span>{{printf "%.2f" .Invoice.Discount}}</span>
+                </div>
+                <div class="flex justify-between py-2 text-lg font-bold border-t">
+                    <span>ยอดสุทธิ:</span>
+                    <span>{{printf "%.2f" .Total}}</span>
                 </div>
             </div>
         </div>
+
+        <!-- Footer -->
+        <div class="border-t pt-8">
+            <div class="grid grid-cols-2 gap-8">
+                <div class="text-center">
+                    <div class="mb-4">____________________</div>
+                    <p>ผู้รับเงิน</p>
+                    <p class="text-gray-600">วันที่ ____/____/____</p>
+                </div>
+                <div class="text-center">
+                    <div class="mb-4">____________________</div>
+                    <p>ผู้รับสินค้า</p>
+                    <p class="text-gray-600">วันที่ ____/____/____</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="mt-8 text-sm text-gray-600">
+            <p>หมายเหตุ:</p>
+            <p>1. สินค้าที่ส่งมอบแล้วไม่สามารถเปลี่ยนหรือคืนได้</p>
+            <p>2. เช็คที่นำมาชำระต้องสามารถเรียกเก็บได้ในเขตกรุงเทพฯ เท่านั้น</p>
+        </div>
     </div>
+
     <script>
         function add(a, b) {
             return a + b;
-        }
-
-        function mul(a, b) {
-            return a * b;
         }
     </script>
 </body>
