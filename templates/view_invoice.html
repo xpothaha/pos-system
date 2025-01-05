@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{.Invoice.InvoiceNumber}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold mb-4">Invoice: {{.Invoice.InvoiceNumber}}</h1>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Customer:</label>
+                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.CustomerName}}</span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Tax ID:</label>
+                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.TaxID}}</span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Customer Address:</label>
+                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.CustomerAddress}}</span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Sale Date:</label>
+                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.SaleDate.Format "2006-01-02"}}</span>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Sales Person:</label>
+                <span class="mt-1 p-2 border rounded w-full">{{.Invoice.SalesPerson}}</span>
+            </div>
+
+            <table class="mt-6 w-full">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border">Product ID</th>
+                        <th class="py-2 px-4 border">Item Name</th>
+                        <th class="py-2 px-4 border">Quantity</th>
+                        <th class="py-2 px-4 border">Price</th>
+                        <th class="py-2 px-4 border">Tax Rate</th>
+                        <th class="py-2 px-4 border">Tax</th>
+                        <th class="py-2 px-4 border">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Invoice.Items}}
+                    <tr>
+                        <td class="py-2 px-4 border">{{.ProductID}}</td>
+                        <td class="py-2 px-4 border">{{.ItemName}}</td>
+                        <td class="py-2 px-4 border">{{.Quantity}}</td>
+                        <td class="py-2 px-4 border">{{.Price}}</td>
+                        <td class="py-2 px-4 border">{{.TaxRate}}%</td>
+                        <td class="py-2 px-4 border">{{.Tax}}</td>
+                        <td class="py-2 px-4 border">{{printf "%.2f" (add (mul .Price .Quantity) .Tax)}}</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+
+            <div class="mt-6">
+                <div class="flex justify-end space-x-4">
+                    <div>Subtotal: <span id="subtotal">{{.Subtotal}}</span></div>
+                    <div>Tax: <span id="tax-total">{{.TotalTax}}</span></div>
+                    <div>Discount: <span id="discount">{{.Invoice.Discount}}</span></div>
+                    <div>Total: <span id="total">{{.Total}}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function add(a, b) {
+            return a + b;
+        }
+
+        function mul(a, b) {
+            return a * b;
+        }
+    </script>
+</body>
+</html>

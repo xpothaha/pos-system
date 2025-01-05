@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สร้าง Invoice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        let invoiceNumberCounter = 1;
+        let products = [];
+
+        function generateInvoiceNumber() {
+            const formattedInvoiceNumber = `INV-${invoiceNumberCounter.toString().padStart(4, '0')}`;
+            invoiceNumberCounter++;
+            return formattedInvoiceNumber;
+        }
+
+        function updateInvoiceNumber() {
+            document.getElementById('invoice_number').value = generateInvoiceNumber();
+        }
+
+        function addProduct() {
+    const productId = document.getElementById('product_id').value;
+    const itemName = document.getElementById('item_name').value;
+    const quantityInput = document.getElementById('quantity'); // รับ element ของ input
+    const quantity = quantityInput.value;
+
+    if (!productId || !itemName) {
+        alert('กรุณากรอกข้อมูลสินค้าให้ครบถ้วน');
+        return;
+    }
+
+    if (quantity === "") {
+        alert('กรุณากรอกจำนวนสินค้า');
+        quantityInput.focus();
+        return;
+    }
+
+    const parsedQuantity = parseInt(quantity);
+
+    if (isNaN(parsedQuantity) || parsedQuantity < 0) {
+        alert('กรุณากรอกจำนวนสินค้าเป็นตัวเลขที่ถูกต้องและไม่เป็นลบ');
+        quantityInput.focus();
+        return;
+    }
+
+    const price = parseFloat(document.getElementById('price').value) || 0;
+    const taxRate = parseFloat(document.getElementById('tax').value) || 0;
+
+    // Validation for price
+    if (isNaN(price) || price < 0) { 
+        alert('กรุณากรอกราคาเป็นตัวเลขที่ถูกต้องและไม่เป็นลบ');
+        return;
+    }
+
+    // Validation for taxRate
+    if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+        alert('กรุณากรอกภาษีเป็นตัวเลขที่ถูกต้องและอยู่ในช่วง 0-100');
+        return;
+    }
+
+
+    const tax = price * parsedQuantity * (taxRate / 100); // ใช้ parsedQuantity
+    const total = price * parsedQuantity + tax;       // ใช้ parsedQuantity
+
+    const product = {
+        productId,
+        itemName,
+        quantity: parsedQuantity, // เก็บค่าที่ parse แล้ว
+        price,
+        taxRate,
+        tax,
+        total
+    };
+
+    products.push(product);
+    updateProductList();
+    updateTotals();
+
+    document.getElementById('product_id').value = '';
+    document.getElementById('item_name').value = '';
+    document.getElementById('quantity').value = '';
+    document.getElementById('price').value = '';
+    document.getElementById('tax').value = '';
+}
+
+        function removeProduct(index) {
+            products.splice(index, 1);
+            updateProductList();
+            updateTotals();
+        }
+
+        function updateProductList() {
+            const productList = document.getElementById('product-list');
+            productList.innerHTML = '';
+
+            products.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+    <td class="py-2 px-4 border">${product.productId}</td>
+    <td class="py-2 px-4 border">${product.itemName}</td>
+    <td class="py-2 px-4 border">${product.quantity}</td>
+    <td class="py-2 px-4 border">${product.price.toFixed(2)}</td>
+    <td class="py-2 px-4 border">${product.taxRate.toFixed(2)}%</td>
+    <td class="py-2 px-4 border">${product.tax.toFixed(2)}</td>
+    <td class="py-2 px-4 border">${product.total.toFixed(2)}</td>
+    <td class="py-2 px-4 border">
+        <button type="button" onclick="removeProduct(${index})" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded">ลบ</button>
+    </td>
+`;
+                productList.appendChild(row);
+            });
+        }
+        
+
+        function updateTotals() {
+            let subtotal = 0;
+            let totalTax = 0;
+            let discount = parseFloat(document.getElementById('discount').value) || 0;
+
+            products.forEach(product => {
+                subtotal += product.price * product.quantity;
+                totalTax += product.tax;
+            });
+
+            let amount = subtotal + totalTax - discount;
+
+            document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+            document.getElementById('tax-total').textContent = totalTax.toFixed(2);
+            document.getElementById('discount-display').textContent = discount.toFixed(2);
+            document.getElementById('amount').textContent = amount.toFixed(2);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+    updateInvoiceNumber();
+
+    // ส่วนที่แก้ไข: กำหนดวันที่และเวลาปัจจุบัน
+    const saleDateInput = document.getElementById('sale_date');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours() % 12 || 12).padStart(2, '0'); // แปลงเป็น 12-hour format
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const amPm = now.getHours() < 12 ? 'AM' : 'PM'; // กำหนด AM/PM
+    const datetime = `${year}-${month}-${day}T${hours}:${minutes}`; // จัดรูปแบบวันที่และเวลา
+    saleDateInput.value = datetime;
+});
+    </script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen bg-gray-100">
+
+        <aside class="w-64 bg-gray-800 text-white p-4">
+            <div class="mb-8 flex items-center">
+                <img src="your-logo.png" alt="Logo" class="h-8 mr-2"> <span class="text-xl font-bold">Stockly</span>
+            </div>
+            <ul class="space-y-2">
+                <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">หน้าแรก</a></li>
+                <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">ออกบิลขาย</a></li>
+                <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">ออกบิลซื้อ</a></li>
+                <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">จัดการสินค้า</a></li>
+                <li><a href="#" class="block py-2 px-4 rounded hover:bg-gray-700">ตั้งค่าระบบ</a></li>
+            </ul>
+        </aside>
+
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h1 class="text-2xl font-bold mb-4">New Sale</h1>
+
+                <form method="POST" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="invoice_number" class="block text-sm font-medium text-gray-700">Invoice Number</label>
+                            <input type="text" name="invoice_number" id="invoice_number" class="mt-1 p-2 border rounded w-full" readonly>
+                        </div>
+                        <div>
+                            <label for="customer_name" class="block text-sm font-medium text-gray-700">Customer</label>
+                            <input type="text" name="customer_name" id="customer_name" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                        <div>
+                            <label for="tax_id" class="block text-sm font-medium text-gray-700">Tax ID</label>
+                            <input type="text" name="tax_id" id="tax_id" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                        <div>
+                            <label for="customer_address" class="block text-sm font-medium text-gray-700">Customer Address</label>
+                            <input type="text" name="customer_address" id="customer_address" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                       <div>
+    <label for="sale_date" class="block text-sm font-medium text-gray-700">Sale Date and Time</label>
+    <input type="datetime-local" name="sale_date" id="sale_date" class="mt-1 p-2 border rounded w-full">
+</div>
+                        <div>
+                            <label for="sales_person" class="block text-sm font-medium text-gray-700">Sales Person</label>
+                            <input type="text" name="sales_person" id="sales_person" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                            <input type="text" name="description" id="description" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                        <div>
+                            <label for="note" class="block text-sm font-medium text-gray-700">Note</label>
+                            <input type="text" name="note" id="note" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-200 pt-4">
+                        <h2 class="text-lg font-medium mb-2">Products</h2>
+                        <div class="grid grid-cols-8 gap-4 items-end">
+                            <div>
+                                <label for="product_id" class="block text-sm font-medium text-gray-700">Product ID</label>
+                                <input type="text" name="product_id" id="product_id" class="mt-1 p-2 border rounded w-full">
+                            </div>
+                            <div>
+                                <label for="item_name" class="block text-sm font-medium text-gray-700">Item Name</label>
+                                <input type="text" name="item_name" id="item_name" class="mt-1 p-2 border rounded w-full">
+                            </div>
+                            <div>
+                                <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+                                <input type="number" name="quantity" id="quantity" class="mt-1 p-2 border rounded w-full">
+                            </div>
+                            <div>
+                                <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
+                                <input type="number" step="0.01" name="price" id="price" class="mt-1 p-2 border rounded w-full">
+                            </div>
+                            <div>
+                                <label for="tax" class="block text-sm font-medium text-gray-700">Tax (%)</label>
+                                <input type="number" step="0.01" name="tax" id="tax" class="mt-1 p-2 border rounded w-full">
+                            </div>
+                            <div class="col-span-2">
+                                <button type="button" onclick="addProduct()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded">Add Product</button>
+                                
+                            </div>
+                        </div>
+
+                        <table class="mt-4 w-full">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-4 border">Product ID</th>
+                                    <th class="py-2 px-4 border">Item Name</th>
+                                    <th class="py-2 px-4 border">Quantity</th>
+                                    <th class="py-2 px-4 border">Price</th>
+                                    <th class="py-2 px-4 border">Tax Rate</th>
+                                    <th class="py-2 px-4 border">Tax</th>
+                                    <th class="py-2 px-4 border">Total</th>
+                                    <th class="py-2 px-4 border">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-list">
+                            </tbody>
+                        </table>
+                        <div class="mt-4">
+                        <label for="discount" class="block text-sm font-medium text-gray-700">Discount</label>
+                        <input type="number" step="0.01" name="discount" id="discount" oninput="updateTotals()" class="mt-1 p-2 border rounded w-full">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-gray-200">
+                        <div class="flex justify-end space-x-4 text-lg font-bold">
+                            <div>Subtotal: <span id="subtotal" class="text-blue-500">0.00</span></div>
+                            <div>Tax: <span id="tax-total" class="text-green-500">0.00</span></div>
+                            <div>Discount: <span id="discount-display" class="text-yellow-500">0.00</span></div>
+                            <div>Amount: <span id="amount" class="text-green-500" >0.00</span></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+                        สร้าง Invoice
+                    </button>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
