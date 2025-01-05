@@ -32,6 +32,85 @@ func CreateInvoiceHandler(db *gorm.DB, r *render.Render) http.HandlerFunc {
             customerAddress := req.FormValue("customer_address")
             discountStr := req.FormValue("discount")
 
+            productsData := req.FormValue("products_data")
+            var products []map[string]interface{}
+            if err := json.Unmarshal([]byte(productsData), &products); err != nil {
+                http.Error(w, "Invalid products data", http.StatusBadRequest)
+                return
+            }
+        
+            for _, productData := range products {
+                // Handle quantity as string first
+                quantityStr, ok := productData["quantity"].(string)
+                if !ok {
+                    http.Error(w, "Invalid quantity format: not a string", http.StatusBadRequest)
+                    return
+                }
+        
+                quantity, err := strconv.Atoi(quantityStr)
+                if err != nil {
+                    http.Error(w, "Invalid quantity format: not a valid integer", http.StatusBadRequest)
+                    return
+                }
+                //Get productID, itemName, price, taxRate, tax, total from productData
+                        productId, ok := productData["productId"].(string)
+                if !ok {
+                    http.Error(w, "Invalid product ID format", http.StatusBadRequest)
+                    return
+                }
+                itemName, ok := productData["itemName"].(string)
+                if !ok {
+                    http.Error(w, "Invalid item name format", http.StatusBadRequest)
+                    return
+                }
+                priceStr, ok := productData["price"].(string)
+                if !ok {
+                    http.Error(w, "Invalid price format: not a string", http.StatusBadRequest)
+                    return
+                }
+        
+                price, err := strconv.ParseFloat(priceStr, 64)
+                if err != nil {
+                    http.Error(w, "Invalid price format: not a valid float", http.StatusBadRequest)
+                    return
+                }
+            taxRateStr, ok := productData["taxRate"].(string)
+                if !ok {
+                    http.Error(w, "Invalid taxRate format: not a string", http.StatusBadRequest)
+                    return
+                }
+        
+                taxRate, err := strconv.ParseFloat(taxRateStr, 64)
+                if err != nil {
+                    http.Error(w, "Invalid taxRate format: not a valid float", http.StatusBadRequest)
+                    return
+                }
+            taxStr, ok := productData["tax"].(string)
+                if !ok {
+                    http.Error(w, "Invalid tax format: not a string", http.StatusBadRequest)
+                    return
+                }
+        
+                tax, err := strconv.ParseFloat(taxStr, 64)
+                if err != nil {
+                    http.Error(w, "Invalid tax format: not a valid float", http.StatusBadRequest)
+                    return
+                }
+                totalStr, ok := productData["total"].(string)
+                if !ok {
+                    http.Error(w, "Invalid total format: not a string", http.StatusBadRequest)
+                    return
+                }
+        
+                total, err := strconv.ParseFloat(totalStr, 64)
+                if err != nil {
+                    http.Error(w, "Invalid total format: not a valid float", http.StatusBadRequest)
+                    return
+                }
+                // ... use quantity, price, taxRate, tax, total
+            }           
+
+
             // Validate and convert data types
             saleDate, err := time.Parse("2006-01-02T15:04", saleDateStr) // ใช้ saleDateStr
             if err != nil {
