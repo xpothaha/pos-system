@@ -23,8 +23,7 @@
     const productId = document.getElementById('product_id').value;
     const itemName = document.getElementById('item_name').value;
     const quantityInput = document.getElementById('quantity'); // รับ element ของ input
-    const quantity = quantityInput.value;
-
+    const quantity = quantityInput.value;       
     if (!productId || !itemName) {
         alert('กรุณากรอกข้อมูลสินค้าให้ครบถ้วน');
         return;
@@ -73,6 +72,8 @@
         total
     };
 
+
+        // ... update table ...
     products.push(product);
     updateProductList();
     updateTotals();
@@ -145,7 +146,13 @@
     const amPm = now.getHours() < 12 ? 'AM' : 'PM'; // กำหนด AM/PM
     const datetime = `${year}-${month}-${day}T${hours}:${minutes}`; // จัดรูปแบบวันที่และเวลา
     saleDateInput.value = datetime;
+    
 });
+
+    function updateProductsData(){
+        const productsDataInput = document.getElementById('products_data');
+        productsDataInput.value = JSON.stringify(products);
+    }
     </script>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -210,6 +217,7 @@
                             <div>
                                 <label for="product_id" class="block text-sm font-medium text-gray-700">Product ID</label>
                                 <input type="text" name="product_id" id="product_id" class="mt-1 p-2 border rounded w-full">
+                                <input type="hidden" name="products_data" id="products_data">
                             </div>
                             <div>
                                 <label for="item_name" class="block text-sm font-medium text-gray-700">Item Name</label>
@@ -264,7 +272,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
+                    <button type="submit" onclick="updateProductsData()" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">
                         สร้าง Invoice
                     </button>
                 </form>
