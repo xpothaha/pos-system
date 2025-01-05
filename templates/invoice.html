@@ -22,20 +22,19 @@
         function addProduct() {
     const productId = document.getElementById('product_id').value;
     const itemName = document.getElementById('item_name').value;
-    const quantityInput = document.getElementById('quantity'); // รับ element ของ input
-    const quantity = quantityInput.value;       
-    if (!productId || !itemName) {
-        alert('กรุณากรอกข้อมูลสินค้าให้ครบถ้วน');
-        return;
-    }
+    const quantityInput = document.getElementById('quantity');
+    const quantity = quantityInput.value;
+    const price = document.getElementById('price').value;
+    const taxRate = document.getElementById('tax').value;
 
-    if (quantity === "") {
-        alert('กรุณากรอกจำนวนสินค้า');
-        quantityInput.focus();
+    if (productId === "" || itemName === "" || quantity === "" || price === "" || taxRate === "") {
+        alert("Please fill in all fields.");
         return;
     }
 
     const parsedQuantity = parseInt(quantity);
+    const parsedPrice = parseFloat(price);
+    const parsedTaxRate = parseFloat(taxRate);
 
     if (isNaN(parsedQuantity) || parsedQuantity < 0) {
         alert('กรุณากรอกจำนวนสินค้าเป็นตัวเลขที่ถูกต้องและไม่เป็นลบ');
@@ -43,38 +42,29 @@
         return;
     }
 
-    const price = parseFloat(document.getElementById('price').value) || 0;
-    const taxRate = parseFloat(document.getElementById('tax').value) || 0;
-
-    // Validation for price
-    if (isNaN(price) || price < 0) { 
-        alert('กรุณากรอกราคาเป็นตัวเลขที่ถูกต้องและไม่เป็นลบ');
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+        alert('กรุณากรอกราคาให้ถูกต้องและไม่เป็นลบ');
         return;
     }
 
-    // Validation for taxRate
-    if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
-        alert('กรุณากรอกภาษีเป็นตัวเลขที่ถูกต้องและอยู่ในช่วง 0-100');
+    if (isNaN(parsedTaxRate) || parsedTaxRate < 0) {
+        alert('กรุณากรอกภาษีให้ถูกต้องและไม่เป็นลบ');
         return;
     }
 
+    const tax = parsedPrice * parsedQuantity * (parsedTaxRate / 100);
+    const total = parsedPrice * parsedQuantity + tax;
 
-    const tax = price * parsedQuantity * (taxRate / 100); // ใช้ parsedQuantity
-    const total = price * parsedQuantity + tax;       // ใช้ parsedQuantity
+    products.push({
+        productId: productId,
+        itemName: itemName,
+        quantity: quantity.toString(),
+        price: parsedPrice.toString(),
+        taxRate: parsedTaxRate.toString(),
+        tax: tax.toString(),
+        total: total.toString()
+    });
 
-    const product = {
-        productId,
-        itemName,
-        quantity: parsedQuantity, // เก็บค่าที่ parse แล้ว
-        price,
-        taxRate,
-        tax,
-        total
-    };
-
-
-        // ... update table ...
-    products.push(product);
     updateProductList();
     updateTotals();
 
